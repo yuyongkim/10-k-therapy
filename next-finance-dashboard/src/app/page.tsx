@@ -1030,15 +1030,24 @@ export default function UnifiedDashboard() {
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) 320px", gap: 20, marginTop: 20 }}>
       <Panel title="Ask the ledger" badge="어시스턴트">
         <div style={{ display: "grid", gap: 14 }}>
-          <Quote
-            text="The assistant lives at <a href='/assistant' style='color:inherit;border-bottom:1px solid currentColor'>/assistant</a>. Queries there return citation-backed evidence cards that link back into this dashboard."
-            cite="Courthouse Archive · handoff pattern"
-          />
+          <p
+            style={{
+              fontFamily: "var(--font-serif)",
+              fontSize: 14,
+              lineHeight: 1.6,
+              color: C.text,
+              margin: 0,
+            }}
+          >
+            자연어로 질문하면 검색 전략과 유사 계약·시장 범위를 돌려주는 어시스턴트입니다.
+            답변에는 원문 조항 citation 이 붙고, 결과 계약은 이 대시보드로 바로 pin 해서 비교할 수 있습니다.
+          </p>
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
             {[
-              { q: "What is the median royalty for Oncology APAC licenses?", kr: "항암 APAC 라이선스의 중앙값 로열티" },
-              { q: "DART-only agreements with no SEC counterpart",            kr: "SEC 대응이 없는 DART 단독 계약" },
-              { q: "Semiconductor IP comparables ≥ 2%",                       kr: "반도체 IP 비교 (2% 이상)" },
+              { q: "Chemical manufacturing royalty benchmarks for process technology", kr: "화학 공정기술 로열티 벤치마크" },
+              { q: "Pharmaceutical drug licensing royalty rates",                       kr: "의약품 라이선스 로열티" },
+              { q: "Semiconductor process licensing deal comps",                        kr: "반도체 공정 라이선스 계약 비교" },
             ].map((ex, i) => (
               <a
                 key={i}

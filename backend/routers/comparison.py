@@ -11,7 +11,7 @@ from .contracts import _build_contract_out
 router = APIRouter(prefix="/comparison", tags=["comparison"])
 
 
-@router.post("/", response_model=ComparisonResponse)
+@router.post("", response_model=ComparisonResponse)
 def find_comparables(req: ComparisonRequest, db: Session = Depends(get_db)):
     """Find comparable license contracts for valuation benchmarking."""
     q = db.query(LicenseContract).filter(

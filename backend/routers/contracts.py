@@ -10,7 +10,7 @@ from ..schemas import (
     ContractOut, ContractDetail, ContractListResponse,
     FinancialTermOut, PaginationMeta,
 )
-from .helpers import extract_financial_terms, get_company_info
+from .helpers import extract_financial_terms, get_company_info, apply_scope_filter
 
 router = APIRouter(prefix="/contracts", tags=["contracts"])
 
@@ -44,7 +44,7 @@ def _build_contract_out(c, db: Session) -> ContractOut:
     )
 
 
-@router.get("/", response_model=ContractListResponse)
+@router.get("", response_model=ContractListResponse)
 def list_contracts(
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=200),
@@ -61,6 +61,9 @@ def list_contracts(
 
     if quality and quality != "all":
         q = q.filter(LicenseContract.quality_flag == quality)
+        if quality == "clean":
+            # Extra strictness — drop scope-leaked agreements + placeholder licensors
+            q = apply_scope_filter(q, LicenseContract)
 
     if search:
         term = f"%{search.lower()}%"

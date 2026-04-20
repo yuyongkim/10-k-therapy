@@ -5,84 +5,103 @@ from sqlalchemy import func, select
 from ..database import get_db
 from ..models import LicenseContract, FinancialTerm, Filing, Company, CostTracking
 from ..schemas import StatsResponse
+from .helpers import scope_filter_conditions
 
 router = APIRouter(prefix="/stats", tags=["statistics"])
 
 
-@router.get("/", response_model=StatsResponse)
+@router.get("", response_model=StatsResponse)
 def get_stats(quality: str = Query("clean"), db: Session = Depends(get_db)):
-    qf = LicenseContract.quality_flag == quality if quality != "all" else True
+    # Build filter predicates. For 'clean' we add the scope blacklist +
+    # placeholder-licensor exclusions so false positives (customs permits,
+    # equity transfers, debt guarantees) don't skew counts.
+    quality_preds = []
+    if quality != "all":
+        quality_preds.append(LicenseContract.quality_flag == quality)
+    if quality == "clean":
+        quality_preds.extend(scope_filter_conditions(LicenseContract))
 
-    total = db.query(func.count(LicenseContract.id)).filter(qf).scalar() or 0
+    # Convenience: None if empty, for building .filter() calls.
+    def qfilter(q):
+        return q.filter(*quality_preds) if quality_preds else q
+
+    total = qfilter(db.query(func.count(LicenseContract.id))).scalar() or 0
 
     # Companies
-    company_count = (
+    company_count = qfilter(
         db.query(func.count(func.distinct(Filing.company_id)))
         .join(LicenseContract, LicenseContract.filing_id == Filing.id)
-        .filter(qf)
-        .scalar() or 0
-    )
+    ).scalar() or 0
 
     # Clean contract IDs for financial term filtering
-    if quality != "all":
-        clean_ids_q = db.query(LicenseContract.id).filter(qf).subquery()
+    if quality_preds:
+        clean_ids_q = qfilter(db.query(LicenseContract.id)).subquery()
         ft_filter = FinancialTerm.contract_id.in_(select(clean_ids_q))
     else:
         ft_filter = True
 
-    # Royalty + upfront
+    # Royalty + upfront (with sanity filtering to exclude 199% / 0% / sub-$10K noise)
     contracts_with_royalty = set(
         r[0] for r in db.query(FinancialTerm.contract_id)
-        .filter(FinancialTerm.term_type == "royalty", FinancialTerm.rate.isnot(None), ft_filter).all()
+        .filter(
+            FinancialTerm.term_type == "royalty",
+            FinancialTerm.rate.isnot(None),
+            FinancialTerm.rate >= 0.01,
+            FinancialTerm.rate <= 30,
+            ft_filter,
+        ).all()
     )
     contracts_with_upfront = set(
         r[0] for r in db.query(FinancialTerm.contract_id)
-        .filter(FinancialTerm.term_type == "upfront", FinancialTerm.amount.isnot(None), ft_filter).all()
+        .filter(
+            FinancialTerm.term_type == "upfront",
+            FinancialTerm.amount.isnot(None),
+            FinancialTerm.amount >= 10_000,
+            ft_filter,
+        ).all()
     )
     both = len(contracts_with_royalty & contracts_with_upfront)
 
-    # Avg royalty
+    # Avg royalty (same sanity band)
     avg_royalty = (
         db.query(func.avg(FinancialTerm.rate))
-        .filter(FinancialTerm.term_type == "royalty", FinancialTerm.rate > 0, FinancialTerm.rate < 100, ft_filter)
+        .filter(
+            FinancialTerm.term_type == "royalty",
+            FinancialTerm.rate >= 0.01,
+            FinancialTerm.rate <= 30,
+            ft_filter,
+        )
         .scalar()
     )
 
     # Avg confidence
-    avg_conf = db.query(func.avg(LicenseContract.confidence_score)).filter(qf).scalar()
+    avg_conf = qfilter(db.query(func.avg(LicenseContract.confidence_score))).scalar()
 
     # By model
-    model_rows = (
+    model_rows = qfilter(
         db.query(LicenseContract.extraction_model, func.count())
-        .filter(qf)
-        .group_by(LicenseContract.extraction_model).all()
-    )
+    ).group_by(LicenseContract.extraction_model).all()
     by_model = {(r[0] or "unknown"): r[1] for r in model_rows}
 
     # By source
-    source_rows = (
+    source_rows = qfilter(
         db.query(LicenseContract.source_system, func.count())
-        .filter(qf)
-        .group_by(LicenseContract.source_system).all()
-    )
+    ).group_by(LicenseContract.source_system).all()
     by_source = {(r[0] or "unknown"): r[1] for r in source_rows}
 
     # By category
-    cat_rows = (
+    cat_rows = qfilter(
         db.query(LicenseContract.tech_category, func.count())
-        .filter(qf, LicenseContract.tech_category.isnot(None))
-        .group_by(LicenseContract.tech_category)
-        .order_by(func.count().desc()).limit(15).all()
-    )
+        .filter(LicenseContract.tech_category.isnot(None))
+    ).group_by(LicenseContract.tech_category).order_by(func.count().desc()).limit(15).all()
     by_category = [{"category": r[0], "count": r[1]} for r in cat_rows]
 
     # By year
-    year_rows = (
+    year_rows = qfilter(
         db.query(Filing.fiscal_year, func.count())
         .join(LicenseContract, LicenseContract.filing_id == Filing.id)
-        .filter(qf, Filing.fiscal_year.isnot(None))
-        .group_by(Filing.fiscal_year).order_by(Filing.fiscal_year).all()
-    )
+        .filter(Filing.fiscal_year.isnot(None))
+    ).group_by(Filing.fiscal_year).order_by(Filing.fiscal_year).all()
     by_year = [{"year": r[0], "count": r[1]} for r in year_rows]
 
     # Monthly cost

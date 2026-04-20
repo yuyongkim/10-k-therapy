@@ -62,6 +62,9 @@ License Agreements tab + RAG similar-case search across disclosure sections.
 
 This isn't here to replace lawyers. It's here so you stop reading 10-K footnotes at 2am.
 
+> **데이터 범위 메모.** 공식 연구·논문 기준 `clean` slice 는 **19,054건** (DB 의 `quality_flag='clean'`).
+> 대시보드 (`sec.yule.pics`) 에는 이 위에 추가 post-extraction 필터 — 스코프 블랙리스트 (면세점 특허 · 채무보증 · 지분인수 등 비(非)라이선스 계약 제외) 와 값 sanity 컷 (로열티 0.01–30% 범위, 선급금 ≥ $10K) — 를 적용해 **18,333건 strict view** 로 렌더링합니다. 두 숫자는 상위 호환 관계이며 선택한 level 에 따라 달라집니다. 필터 구현은 `backend/routers/helpers.py` 참조.
+
 ## 현재 코드 스캔 요약 (2026-02-28)
 
 - SEC 파이프라인: `crawler -> parser -> extractor -> scan_licenses` 흐름이 코드로 분리되어 있음

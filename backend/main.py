@@ -12,6 +12,10 @@ app = FastAPI(
     title="License Intelligence API",
     description="SEC & DART license contract analysis and valuation benchmarking",
     version="1.0.0",
+    # Disable automatic trailing-slash redirects so the app works cleanly behind
+    # Next.js /fastapi/* rewrite + Cloudflare Tunnel — otherwise /api/stats/ ↔
+    # /api/stats ping-pongs between 308 and 307 and the browser cross-origin blocks.
+    redirect_slashes=False,
 )
 
 app.add_middleware(

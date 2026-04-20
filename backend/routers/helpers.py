@@ -24,8 +24,34 @@ logger = logging.getLogger(__name__)
 # Contract formatting (used by contracts, dart, assistant routers)
 # ---------------------------------------------------------------------------
 
+def _sanitize_royalty(rate: float | None) -> float | None:
+    """Drop implausible royalty rates. Real-world royalty is 0.01%-30%; anything
+    outside is LLM hallucination or unit confusion. 0% 'royalty' means the
+    extractor saw a placeholder (협의 예정 / 추후 결정) and filled it as 0."""
+    if rate is None:
+        return None
+    if rate < 0.01 or rate > 30:
+        return None
+    return rate
+
+
+def _sanitize_upfront(amount: float | None) -> float | None:
+    """Drop implausible upfront amounts. Real licensing upfronts start at ~$10K
+    (industry floor); anything below is a parsing error (e.g., $50 or $100 for
+    a multi-million-dollar deal likely had digits truncated)."""
+    if amount is None:
+        return None
+    if amount < 10_000:
+        return None
+    return amount
+
+
 def extract_financial_terms(contract) -> dict:
-    """Extract royalty rate and upfront amount from a contract's financial_terms."""
+    """Extract royalty rate and upfront amount from a contract's financial_terms.
+
+    Applies sanity filtering: royalty outside 0.01-30% or upfront below $10K
+    is treated as None (extraction noise), not a real financial term.
+    """
     royalty = None
     upfront = None
     upfront_ccy = None
@@ -35,7 +61,77 @@ def extract_financial_terms(contract) -> dict:
         elif ft.term_type == "upfront" and ft.amount is not None:
             upfront = ft.amount
             upfront_ccy = ft.currency
-    return {"royalty_rate": royalty, "upfront_amount": upfront, "upfront_currency": upfront_ccy}
+    return {
+        "royalty_rate": _sanitize_royalty(royalty),
+        "upfront_amount": _sanitize_upfront(upfront),
+        "upfront_currency": upfront_ccy,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Scope filter — exclude non-license agreements that extractor misclassified
+# ---------------------------------------------------------------------------
+
+# Korean phrases that indicate the record is NOT an IP/technology license
+# but some other kind of agreement that happens to contain the word 계약.
+# Applied to tech_name + reasoning via ILIKE when quality='clean'.
+SCOPE_BLACKLIST_PHRASES = [
+    "면세점 특허",     # customs duty-free permit, not an IP patent
+    "면세점",          # brand distribution in duty-free, not a license
+    "채무보증",        # debt/loan guarantee
+    "지급보증",        # payment guarantee
+    "지분 인수",       # equity acquisition
+    "지분인수",
+    "지분 매각",
+    "지분매각",
+    "주식 양수",       # share transfer
+    "주식양수",
+    "주식 양도",
+    "주식양도",
+    "특수관계자",      # related-party transactions
+    "브랜드 입점",     # retail brand placement
+    "브랜드입점",
+    "베트남 지분",     # M&A equity
+    "회사분할",        # corporate spin-off / division
+    "합병계약",        # merger
+]
+
+# Licensor placeholders that mean extraction failed.
+LICENSOR_PLACEHOLDERS = [
+    "null", "Null", "NULL", "-", "—", "—", "회사", "연결회사", "도입처",
+]
+
+
+def scope_filter_conditions(LicenseContract):
+    """Return a list of SQLAlchemy conditions that together exclude
+    scope-leaked agreements + placeholder licensors. Use with
+    `query.filter(*scope_filter_conditions(LicenseContract))` or splat into
+    an existing filter chain."""
+    from sqlalchemy import or_, not_, func
+
+    blacklist_conditions = []
+    for phrase in SCOPE_BLACKLIST_PHRASES:
+        pat = f"%{phrase}%"
+        blacklist_conditions.append(LicenseContract.tech_name.ilike(pat))
+        blacklist_conditions.append(LicenseContract.reasoning.ilike(pat))
+
+    placeholder_cond = or_(
+        LicenseContract.licensor_name.is_(None),
+        LicenseContract.licensor_name.in_(LICENSOR_PLACEHOLDERS),
+        func.trim(LicenseContract.licensor_name) == "",
+    )
+
+    return [
+        not_(or_(*blacklist_conditions)),
+        not_(placeholder_cond),
+    ]
+
+
+def apply_scope_filter(query, LicenseContract):
+    """Exclude contracts whose tech_name or reasoning matches scope-blacklist
+    phrases (non-license agreements misclassified by the extractor) or whose
+    licensor is a placeholder. Only applied to 'clean' slices."""
+    return query.filter(*scope_filter_conditions(LicenseContract))
 
 
 def get_company_info(db: Session, contract) -> dict:
