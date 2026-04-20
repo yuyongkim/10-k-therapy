@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEC License Observatory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #f6f4ef;
+            --ink: #1e1d1a;
+            --muted: #555248;
+            --panel: #fffdfa;
+            --line: #d8d1c2;
+            --accent: #006d77;
+            --accent-soft: #d7efef;
+            --warn: #bc3908;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 10% 20%, #efe6d8 0%, transparent 35%),
+                radial-gradient(circle at 90% 10%, #dcecf0 0%, transparent 30%),
+                var(--bg);
+            font-family: "Space Grotesk", sans-serif;
+        }
+
+        .shell {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px 16px 36px;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #ffffff 0%, #f2ede2 100%);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 10px 24px rgba(30, 29, 26, 0.07);
+        }
+
+        .hero h1 {
+            margin: 0 0 6px;
+            font-size: clamp(1.5rem, 3vw, 2rem);
+        }
+
+        .hero p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .meta {
+            margin-top: 10px;
+            font-family: "IBM Plex Mono", monospace;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .kpi {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+            min-height: 92px;
+            transition: transform .2s ease;
+        }
+
+        .kpi:hover {
+            transform: translateY(-2px);
+        }
+
+        .kpi h3 {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .kpi p {
+            margin: 8px 0 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .kpi-sub {
+            margin-top: 4px;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .kpi-sub span {
+            font-weight: 700;
+            color: #2b2a26;
+        }
+
+        .kpi-note {
+            margin: 0 0 10px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 290px 1fr;
+            gap: 12px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .panel h2 {
+            margin: 0 0 10px;
+            font-size: 1rem;
+        }
+
+        .filters label {
+            display: block;
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin: 8px 0 4px;
+        }
+
+        .filters input,
+        .filters select {
+            width: 100%;
+            padding: 8px 9px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background: #fff;
+        }
+
+        .checklist {
+            margin-top: 10px;
+            border-top: 1px dashed var(--line);
+            padding-top: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.84rem;
+            color: #3c3a34;
+        }
+
+        .check-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            margin: 0;
+        }
+
+        .filter-actions {
+            margin-top: 10px;
+        }
+
+        .ghost-btn {
+            background: transparent;
+            color: var(--accent);
+        }
+
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .chart-card {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 10px;
+            background: #fff;
+            min-height: 300px;
+        }
+
+        .chart-card canvas {
+            width: 100%;
+            height: 230px;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 880px;
+        }
+
+        th, td {
+            padding: 9px;
+            border-bottom: 1px solid #ede8da;
+            text-align: left;
+            font-size: 0.86rem;
+            vertical-align: top;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #f7f4ec;
+            font-size: 0.78rem;
+            letter-spacing: .02em;
+            color: #3c3a34;
+            z-index: 1;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .sort-ind {
+            display: inline-block;
+            width: 12px;
+            color: #006d77;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        tr:hover {
+            background: #fcfaf4;
+        }
+
+        .usage-guide {
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .usage-guide h3 {
+            margin: 0 0 6px;
+            font-size: 0.95rem;
+        }
+
+        .usage-guide p {
+            margin: 0 0 4px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .usage-guide code {
+            font-family: "IBM Plex Mono", monospace;
+            background: #f1ede2;
+            border-radius: 4px;
+            padding: 1px 4px;
+            font-size: 0.78rem;
+        }
+
+        .pager {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.84rem;
+            color: var(--muted);
+        }
+
+        button {
+            border: 1px solid var(--accent);
+            background: var(--accent);
+            color: #fff;
+            border-radius: 8px;
+            padding: 7px 12px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        button:disabled {
+            background: #b3bfbd;
+            border-color: #b3bfbd;
+            cursor: not-allowed;
+        }
+
+        .error {
+            color: var(--warn);
+            font-weight: 700;
+        }
+
+        @media (max-width: 980px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="hero">
+            <h1>SEC License Observatory</h1>
+            <p>Extracted agreements across SEC filings with financial term visibility.</p>
+            <div class="meta" id="scan-meta">Loading latest scan...</div>
+        </section>
+
+        <section class="kpi-grid">
+            <article class="kpi">
+                <h3>Total Agreements (Overall)</h3>
+                <p id="kpi-agreements-overall">-</p>
+                <div class="kpi-sub">Filtered: <span id="kpi-agreements-filtered">-</span></div>
+            </article>
+            <article class="kpi">
+                <h3>Companies With Licenses (Overall)</h3>
+                <p id="kpi-companies-overall">-</p>
+                <div class="kpi-sub">Filtered: <span id="kpi-companies-filtered">-</span></div>
+            </article>
+            <article class="kpi">
+                <h3>Both Financial Terms (Overall)</h3>
+                <p id="kpi-both-overall">-</p>
+                <div class="kpi-sub">Filtered: <span id="kpi-both-filtered">-</span></div>
+            </article>
+            <article class="kpi">
+                <h3>Avg Royalty Rate (Overall)</h3>
+                <p id="kpi-avg-royalty-overall">-</p>
+                <div class="kpi-sub">Filtered: <span id="kpi-avg-royalty-filtered">-</span></div>
+            </article>
+        </section>
+        <p class="kpi-note">Top number = full dataset, Filtered = current search/filter result.</p>
+
+        <section class="layout">
+            <aside class="panel filters">
+                <h2>Filters</h2>
+                <label for="search">Search</label>
+                <input id="search" type="text" placeholder="Company, licensor, technology">
+
+                <label for="category">Technology Category</label>
+                <select id="category">
+                    <option value="">All</option>
+                </select>
+                <div class="check-item" style="margin-top:6px;">
+                    <input type="checkbox" id="show-all-categories">
+                    <label for="show-all-categories">Show all categories</label>
+                </div>
+                <div class="kpi-sub" id="category-mode-note">Showing top categories only</div>
+
+                <label for="filing-year">Filing Year</label>
+                <select id="filing-year">
+                    <option value="">All</option>
+                </select>
+
+                <label for="confidence">Min Confidence</label>
+                <select id="confidence">
+                    <option value="">Any</option>
+                    <option value="0.2">0.2+</option>
+                    <option value="0.4">0.4+</option>
+                    <option value="0.6">0.6+</option>
+                    <option value="0.8">0.8+</option>
+                </select>
+
+                <div class="checklist">
+                    <div class="check-item"><input type="checkbox" id="exclude-missing-licensor"><label for="exclude-missing-licensor">Exclude missing Licensor</label></div>
+                    <div class="check-item"><input type="checkbox" id="exclude-missing-licensee"><label for="exclude-missing-licensee">Exclude missing Licensee</label></div>
+                    <div class="check-item"><input type="checkbox" id="exclude-missing-royalty"><label for="exclude-missing-royalty">Exclude missing Royalty</label></div>
+                    <div class="check-item"><input type="checkbox" id="exclude-missing-upfront"><label for="exclude-missing-upfront">Exclude missing Upfront</label></div>
+                    <div class="check-item"><input type="checkbox" id="exclude-missing-confidence"><label for="exclude-missing-confidence">Exclude missing Confidence</label></div>
+                </div>
+
+                <div class="filter-actions">
+                    <button id="reset-filters" class="ghost-btn" type="button">Reset Filters</button>
+                </div>
+            </aside>
+
+            <main class="panel">
+                <div class="chart-grid">
+                    <article class="chart-card"><canvas id="category-chart"></canvas></article>
+                    <article class="chart-card"><canvas id="financial-chart"></canvas></article>
+                </div>
+
+                <section class="usage-guide">
+                    <h3>How to use (examples)</h3>
+                    <p>Search example: type <code>pharma</code> or <code>exxon</code> in Search.</p>
+                    <p>Filter example: set Year to <code>2024</code> and Min Confidence to <code>0.6+</code>.</p>
+                    <p>Sort example: click a header to toggle asc/desc. Use <code>Shift + click</code> to add 2nd/3rd priority sort.</p>
+                    <p>Missing-value cleanup: check Exclude missing Royalty/Upfront to keep only complete rows.</p>
+                </section>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="company">Company <span class="sort-ind" id="sort-company"></span></th>
+                                <th class="sortable" data-sort="ticker">Ticker <span class="sort-ind" id="sort-ticker"></span></th>
+                                <th class="sortable" data-sort="licensor_name">Licensor <span class="sort-ind" id="sort-licensor_name"></span></th>
+                                <th class="sortable" data-sort="licensee_name">Licensee <span class="sort-ind" id="sort-licensee_name"></span></th>
+                                <th class="sortable" data-sort="tech_category">Tech Category <span class="sort-ind" id="sort-tech_category"></span></th>
+                                <th class="sortable" data-sort="royalty_rate">Royalty % <span class="sort-ind" id="sort-royalty_rate"></span></th>
+                                <th class="sortable" data-sort="upfront_amount">Upfront <span class="sort-ind" id="sort-upfront_amount"></span></th>
+                                <th class="sortable" data-sort="filing_year">Filing Year <span class="sort-ind" id="sort-filing_year"></span></th>
+                                <th class="sortable" data-sort="confidence">Confidence <span class="sort-ind" id="sort-confidence"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="rows"></tbody>
+                    </table>
+                </div>
+                <div class="pager">
+                    <button id="prev">Prev</button>
+                    <span id="page">Page 1 / 1</span>
+                    <button id="next">Next</button>
+                </div>
+                <p class="error" id="error-msg"></p>
+            </main>
+        </section>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

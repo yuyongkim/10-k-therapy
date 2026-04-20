@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  10-k-therapy social preview
+  1280x640 — GitHub "Social preview" recommended size
+  Courthouse Archive design tokens: paper / ink / oxblood accent
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <style>
+      .paper { fill: #fbf8f3; }
+      .ink { fill: #1b1f2a; }
+      .muted { fill: #6d7381; }
+      .accent { fill: #86312a; }
+      .rule { stroke: #c8c4b8; stroke-width: 1; fill: none; }
+      .rule-accent { stroke: #86312a; stroke-width: 2; fill: none; }
+      .serif { font-family: "Source Serif 4","Source Serif Pro","Georgia",serif; }
+      .sans  { font-family: "Inter","Pretendard",sans-serif; }
+      .mono  { font-family: "JetBrains Mono",ui-monospace,monospace; letter-spacing: 0.02em; }
+    </style>
+  </defs>
+
+  <!-- background paper -->
+  <rect width="1280" height="640" class="paper"/>
+
+  <!-- top eyebrow rule with mono label -->
+  <g transform="translate(80, 100)">
+    <text x="0" y="0" class="mono ink" font-size="13" font-weight="600" letter-spacing="0.1em">LICENSE INTELLIGENCE · SEC · DART · COMPARABLES WORKBENCH</text>
+    <line x1="0" y1="14" x2="1120" y2="14" class="rule"/>
+  </g>
+
+  <!-- brand mark: § with border box (mimics topbar) -->
+  <g transform="translate(80, 150)">
+    <rect x="0" y="0" width="40" height="40" fill="none" stroke="#1b1f2a" stroke-width="2"/>
+    <text x="20" y="30" class="serif ink" font-size="26" font-weight="700" font-style="italic" text-anchor="middle">§</text>
+  </g>
+
+  <!-- headline -->
+  <g transform="translate(80, 250)">
+    <text class="serif ink" font-size="72" font-weight="500" letter-spacing="-0.02em">
+      Reading 10-Ks shouldn't
+    </text>
+    <text y="90" class="serif ink" font-size="72" font-weight="500" letter-spacing="-0.02em">
+      hurt <tspan font-style="italic" class="accent">this</tspan> much.
+    </text>
+  </g>
+
+  <!-- rule under headline -->
+  <line x1="80" y1="450" x2="1200" y2="450" class="rule-accent"/>
+
+  <!-- stats row (monospace numbers, like Evidence Ledger meta) -->
+  <g transform="translate(80, 500)" class="mono">
+    <!-- stat 1 -->
+    <g>
+      <text x="0" y="0" class="muted" font-size="11" letter-spacing="0.08em">FILINGS READ</text>
+      <text x="0" y="32" class="ink" font-size="28" font-weight="600">38,114</text>
+    </g>
+    <!-- stat 2 -->
+    <g transform="translate(240, 0)">
+      <text x="0" y="0" class="muted" font-size="11" letter-spacing="0.08em">CLEAN AGREEMENTS</text>
+      <text x="0" y="32" class="ink" font-size="28" font-weight="600">19,054</text>
+    </g>
+    <!-- stat 3 -->
+    <g transform="translate(520, 0)">
+      <text x="0" y="0" class="muted" font-size="11" letter-spacing="0.08em">COMPANIES</text>
+      <text x="0" y="32" class="ink" font-size="28" font-weight="600">2,186</text>
+    </g>
+    <!-- stat 4 -->
+    <g transform="translate(760, 0)">
+      <text x="0" y="0" class="muted" font-size="11" letter-spacing="0.08em">ROYALTY OBS</text>
+      <text x="0" y="32" class="ink" font-size="28" font-weight="600">1,546</text>
+    </g>
+  </g>
+
+  <!-- bottom-right repo tag -->
+  <g transform="translate(1200, 600)" text-anchor="end">
+    <text class="mono muted" font-size="13">github.com / yuyongkim / 10-k-therapy</text>
+  </g>
+</svg>

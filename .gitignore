@@ -1,0 +1,94 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node / Next
+next-finance-dashboard/node_modules/
+next-finance-dashboard/.next/
+
+# Logs
+*.log
+logs/*
+!logs/.gitkeep
+
+# Generated caches / backups
+archive/
+backups/
+# /src/ is anchored — only excludes a root-level src/ directory (not next-finance-dashboard/src/)
+/src/
+
+# Large data (do not commit)
+data/raw_filings/
+data/parsed_contracts/
+data/extracted_licenses/
+data/processed/
+data/raw/
+data/dart/raw_filings/
+data/chromadb/
+data/gold/
+data/parsed_footnotes/
+
+# Large binary artifacts
+*.db
+*.sqlite
+*.sqlite3
+dart_batch*_result.json
+dart_extraction_status.json
+project_analysis.json
+
+# Large generated data (multiple copies exist)
+license_summary.json
+**/license_summary.json
+
+# Data demo (keep structure only)
+data_demo/
+
+# Code-only repo policy — all runtime data stays out
+# (sample data can live in docs/ as schema references, not in data/)
+data/
+!data/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.gstack/
+
+# ───── Pre-publication / secrets (do not commit) ─────
+# Real config (keep config_demo.yaml as template)
+config.yaml
+
+# Internal / pre-publication docs — do not commit
+# Keep only schema definitions + annotation guide + filing extractable fields reference.
+docs/paper_*.md
+docs/submission/
+docs/submission_plan.md
+docs/research_experiment_plan.md
+docs/code_stability_report.md
+docs/project_intro_and_screenshot_guide_ko.md
+docs/Profile*.pdf
+docs/_tmp_test_pic.*
+docs/SEC_License_Extraction_Project_Proposal.docx
+docs/assets/proposal/
+docs/linkedin_*.md
+docs/launch_*.md
+
+# Internal planning/spec docs — company context, asset counts, .env inventories
+specs/
+
+# Memory / session artifacts
+memory/
+backups/
+backup_*/
+note.md

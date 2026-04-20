@@ -1,0 +1,57 @@
+# SEC License Extraction & Valuation System Configuration - DEMO
+
+# SEC Crawler Settings
+sec:
+  user_agent: "Individual Researcher test@test.com" # Changed for testing
+  rate_limit: 10 # requests per second
+  target_companies:
+    licensors:
+      - "Exxon Mobil Corp" # XOM
+    licensees:
+      - "Dow Inc." # DOW
+  filing_types: ["10-K"] 
+  date_range:
+    start: "2023-01-01" 
+    end: "2024-12-31" 
+
+# LLM Settings
+llm:
+  # provider: "gemini" | "ollama"
+  provider: "gemini"
+  # gemini example: "models/gemini-2.0-flash"
+  # ollama example: "llama3.1:8b-instruct-q8_0"
+  model: "gemini-1.5-pro"
+  ollama_base_url: "http://localhost:11434"
+  request_timeout_sec: 180
+  max_parallel: 2
+  cost_budget: 10
+
+# Database Settings
+database:
+  host: "localhost"
+  port: 5432
+  name: "license_db"
+  user: "postgres"
+
+# Paths
+paths:
+  data_dir: "data_demo"
+  raw_filings: "data_demo/raw_filings"
+  parsed_footnotes: "data_demo/parsed_footnotes"
+  extracted_licenses: "data_demo/extracted_licenses"
+  dart_raw_filings: "data_demo/dart/raw_filings"
+  dart_unified_schema: "data_demo/dart/unified_schema"
+  dart_corp_code_cache: "data_demo/dart/corp_code.xml"
+
+# DART (OpenDART) Settings
+dart:
+  user_agent: "sec-license-extraction-demo/1.0"
+  rate_limit: 2
+  include_quarterly: false
+  max_filings: 3
+  date_range:
+    start: "20240101"
+    end: "20260220"
+  targets:
+    - corp_name: "삼성전자"
+      stock_code: "005930"
