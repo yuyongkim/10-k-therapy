@@ -372,12 +372,12 @@ export default function DartDashboard() {
                   <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5, minWidth: 900 }}>
                     <thead>
                       <tr style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.08em", color: C.dim }}>
-                        {["Company", "Licensor", "Technology", "Category", "Royalty", "Upfront", "Term", "Conf"].map((h, i) => (
+                        {["공시 기업 · Parties", "Technology", "Category", "Royalty", "Upfront", "Term", "Conf"].map((h, i) => (
                           <th
                             key={h}
                             style={{
                               padding: "8px 10px",
-                              textAlign: i >= 4 && i <= 6 ? "right" : i === 7 ? "center" : "left",
+                              textAlign: i >= 3 && i <= 5 ? "right" : i === 6 ? "center" : "left",
                               borderBottom: `1px solid ${C.bdFocus}`,
                               fontWeight: 500,
                               whiteSpace: "nowrap",
@@ -389,8 +389,8 @@ export default function DartDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {loading && <tr><td colSpan={8} style={{ padding: "48px 0", textAlign: "center", color: C.dim }}>Loading…</td></tr>}
-                      {!loading && contracts.length === 0 && <tr><td colSpan={8}><EmptyState message="No data for current filters" /></td></tr>}
+                      {loading && <tr><td colSpan={7} style={{ padding: "48px 0", textAlign: "center", color: C.dim }}>Loading…</td></tr>}
+                      {!loading && contracts.length === 0 && <tr><td colSpan={7}><EmptyState message="No data for current filters" /></td></tr>}
                       {!loading && contracts.map((c, idx) => {
                         const sel = selected?.id === c.id;
                         const pinned = pinnedIds.includes(c.id);
@@ -404,12 +404,40 @@ export default function DartDashboard() {
                               background: sel ? C.accentSoft : "transparent",
                               cursor: "pointer",
                               animationDelay: `${idx * 18}ms`,
-                              height: "var(--row-h)",
                             }}
                           >
-                            <td style={{ padding: "var(--pad-cell) 10px", fontWeight: 500 }}>
-                              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                <span>{c.company || "—"}</span>
+                            <td style={{ padding: "10px" }}>
+                              <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      fontFamily: "var(--font-serif)",
+                                      fontSize: 14,
+                                      fontWeight: 600,
+                                      color: C.text,
+                                      letterSpacing: "-0.01em",
+                                      lineHeight: 1.2,
+                                    }}
+                                  >
+                                    {c.company || "—"}
+                                  </div>
+                                  <div
+                                    style={{
+                                      marginTop: 3,
+                                      fontSize: 11,
+                                      color: C.muted,
+                                      lineHeight: 1.4,
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                    title={`${c.licensor || "—"} → ${c.licensee || "—"}`}
+                                  >
+                                    {c.licensor || "—"}{" "}
+                                    <span style={{ color: C.dim }}>→</span>{" "}
+                                    {c.licensee || c.company || "—"}
+                                  </div>
+                                </div>
                                 <button
                                   type="button"
                                   onClick={(e) => { e.stopPropagation(); togglePin(c); }}
@@ -417,13 +445,13 @@ export default function DartDashboard() {
                                   style={{
                                     width: 20, height: 20, padding: 0, border: "none", background: "transparent",
                                     color: pinned ? C.accent : C.dim, cursor: "pointer", fontSize: 14, lineHeight: 1,
+                                    flexShrink: 0,
                                   }}
                                 >
                                   ◆
                                 </button>
                               </div>
                             </td>
-                            <td style={{ padding: "var(--pad-cell) 10px", color: C.text2 }}>{c.licensor || "—"}</td>
                             <td
                               title={c.tech_name || undefined}
                               style={{
