@@ -254,6 +254,25 @@ sec-license-extraction/
 - 기업/기술/기간 단위 API 레이어 분리
 - 자동 배치 스케줄러와 알림(Slack/Email) 연동
 
+## 논문 재현 코드 · 데이터
+
+SEC–DART 라이선싱 로열티 논문의 §5–§6 수치·그림을 재생성하는 코드가
+`papers/submission/paper2_royalty_measurement/jtt/scripts/` 에 있습니다.
+
+코퍼스는 Zenodo 에 CC BY 4.0 으로 아카이브돼 있습니다.
+
+| | |
+|---|---|
+| **Version DOI (인용용)** | **https://doi.org/10.5281/zenodo.21545436** — v2.0.1 고정본 |
+| Concept DOI | https://doi.org/10.5281/zenodo.21544899 — 항상 최신 버전 |
+| 파일 | `license_corpus_v2.0.1.zip`, 5.15 MB, MD5 `1b38c18190f1f698f065d789e887000c` |
+
+19,054건의 품질필터 통과 레코드 전부가 출처 식별자를 갖고 있습니다 — 추출 원본 38,114행의
+98.9%, 클린 19,054행의 99.0% 가 SEC accession number 또는 DART 접수번호로 해소됩니다.
+해소 실패한 행은 버리지 않고 `source_resolution_status` 에 표시돼 있습니다.
+
+실행 방법은 `scripts/README.md` 참조.
+
 ## 운영 메모
 
 - `data/` 용량이 매우 커질 수 있으므로 외장 스토리지 또는 경로 분리를 권장합니다.
